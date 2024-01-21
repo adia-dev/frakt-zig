@@ -9,14 +9,11 @@ pub const Fragment = union(enum) {
     FragmentRequest: FragmentRequest,
     FragmentResult: FragmentResult,
 
-    pub fn print(self: Fragment, allocator: std.mem.Allocator) !void {
-        switch (self) {
-            .FragmentTask => |*task| {
-                try task.print(allocator);
-            },
-            .FragmentRequest => |*request| {
-                try request.print(allocator);
-            },
-        }
+    pub fn to_string(self: Fragment, allocator: std.mem.Allocator) ![]u8 {
+        return switch (self) {
+            .FragmentTask => |*task| try task.to_string(allocator),
+            .FragmentRequest => |*request| try request.to_string(allocator),
+            .FragmentResult => |*result| try result.to_string(allocator),
+        };
     }
 };

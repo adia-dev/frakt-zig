@@ -12,7 +12,8 @@ max_iteration: u32,
 resolution: Resolution,
 range: Range,
 
-pub fn print(self: *const Self, allocator: std.mem.Allocator) !void {
-    _ = self;
-    _ = allocator;
+pub fn to_string(self: *const Self, allocator: std.mem.Allocator) ![]u8 {
+    return try std.fmt.allocPrint(allocator,
+        \\FragmentTask {{ id: {d} }}
+    , .{self.id.count});
 }

@@ -5,38 +5,24 @@ const ArrayList = std.ArrayList;
 const models = @import("./models/models.zig");
 const Fragments = models.Fragments;
 const Fragment = Fragments.Fragment;
+const Worker = @import("./networking/worker.zig");
+const networking = @import("./networking/networking.zig");
 
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
 
-    var request = Fragments.FragmentRequest{ .worker_name = "adia-dev", .maximal_work_load = 100 };
-    var fragment_request = Fragment{ .FragmentRequest = request };
-    try fragment_request.print(arena.allocator());
-
-    var arr = ArrayList(u8).init(arena.allocator());
-    try json.stringify(fragment_request, .{}, arr.writer());
-
-    std.debug.print("{s}\n", .{arr.items});
-
-    var json_size: u32 = @intCast(arr.items.len);
-    var data_size: u32 = 0;
-    var total_size: u32 = json_size + data_size;
-
-    var buffer = ArrayList(u8).init(arena.allocator());
-    defer buffer.deinit();
-
-    var buf_writer = buffer.writer();
-
-    try buf_writer.writeInt(u32, total_size, std.builtin.Endian.Big);
-    try buf_writer.writeInt(u32, json_size, std.builtin.Endian.Big);
-    try buf_writer.writeAll(arr.items);
-
-    for (buffer.items) |b| {
-        std.debug.print("{d}, ", .{b});
-    }
-
     var stream = try net.tcpConnectToHost(arena.allocator(), "localhost", 8787);
 
-    _ = try stream.writeAll(buffer.items);
+    var request = Fragments.FragmentRequest{ .worker_name = "adia-dev", .maximal_work_load = 100 };
+    try Worker.send_request(arena.allocator(), &stream, &request);
+
+    var raw_response = try networking.read_message_raw(arena.allocator(), &stream);
+
+    std.debug.print("total_size: {d}\n", .{raw_response.total_size});
+    std.debug.print("json_size: {d}\n", .{raw_response.json_size});
+    std.debug.print("bytes: {s}\n", .{raw_response.buffer.items});
+
+    var fragment = try json.parseFromSliceLeaky(Fragment, arena.allocator(), raw_response.buffer.items[0..raw_response.json_size], .{ .ignore_unknown_fields = true });
+    std.debug.print("\n{any}", .{fragment.FragmentTask});
 }
