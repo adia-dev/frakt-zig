@@ -7,13 +7,45 @@ const Fragments = models.Fragments;
 const Fragment = Fragments.Fragment;
 const networking = @import("networking.zig");
 
-pub fn start_worker() !void {}
+const Self = @This();
 
-pub fn send_request(allocator: std.mem.Allocator, stream: *net.Stream, request: *Fragments.FragmentRequest) !void {
-    var fragment_request = Fragment{ .FragmentRequest = request.* };
+allocator: std.mem.Allocator = undefined,
+worker_name: []const u8,
+maximal_work_load: u32,
+stream: net.Stream = undefined,
 
-    var json_bytes = ArrayList(u8).init(allocator);
-    try json.stringify(fragment_request, .{}, json_bytes.writer());
+pub fn init(allocator: std.mem.Allocator, worker_name: []const u8, maximal_work_load: u32) Self {
+    return .{
+        .allocator = allocator,
+        .worker_name = worker_name,
+        .maximal_work_load = maximal_work_load,
+    };
+}
 
-    try networking.send_message(allocator, stream, json_bytes.items, null);
+pub fn deinit(self: *Self) void {
+    _ = self;
+}
+
+pub fn connect(self: *Self, host: []const u8, port: u16) !void {
+    self.stream = try net.tcpConnectToHost(self.allocator, host, port);
+}
+
+pub fn start_worker(self: *Self) !void {
+    try self.connect("localhost", 8787);
+
+    try self.send_request();
+    var fragment = try networking.read_fragment(self.allocator, &self.stream);
+
+    std.debug.print("{!s}", .{fragment.to_string(self.allocator)});
+}
+
+fn send_request(self: *Self) !void {
+    var buffer = ArrayList(u8).init(self.allocator);
+    defer buffer.deinit();
+
+    var request = Fragments.FragmentRequest{ .worker_name = self.worker_name, .maximal_work_load = self.maximal_work_load };
+    var fragment = Fragment{ .FragmentRequest = request };
+    try fragment.to_json(buffer.writer());
+
+    try networking.send_message(self.allocator, &self.stream, buffer.items, null);
 }

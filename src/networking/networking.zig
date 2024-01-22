@@ -3,6 +3,7 @@ const net = std.net;
 const json = std.json;
 const ArrayList = std.ArrayList;
 const models = @import("../models/models.zig");
+const Fragment = @import("../models/fragments/fragments.zig").Fragment;
 pub const Worker = @import("worker.zig");
 
 pub const RawResponse = struct {
@@ -34,6 +35,15 @@ pub fn send_message(allocator: std.mem.Allocator, stream: *net.Stream, json_byte
     _ = try stream.writeAll(buffer.items);
 }
 
+pub fn send_fragment(allocator: std.mem.Allocator, stream: *net.Stream, fragment: *Fragment) !void {
+    var buffer = ArrayList(u8).init(allocator);
+    defer buffer.deinit();
+
+    try fragment.to_json(buffer.writer());
+
+    try send_message(allocator, stream, buffer.items, null);
+}
+
 pub fn read_message_raw(allocator: std.mem.Allocator, stream: *net.Stream) !RawResponse {
     var stream_reader = stream.reader();
     const total_size = try stream_reader.readInt(u32, std.builtin.Endian.Big);
@@ -57,4 +67,10 @@ pub fn read_message_raw(allocator: std.mem.Allocator, stream: *net.Stream) !RawR
     };
 
     return raw_response;
+}
+
+pub fn read_fragment(allocator: std.mem.Allocator, stream: *net.Stream) !Fragment {
+    const raw_response = try read_message_raw(allocator, stream);
+    const json_bytes = raw_response.buffer.items[0..raw_response.json_size];
+    return try Fragment.from_json(allocator, json_bytes);
 }

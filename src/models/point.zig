@@ -11,3 +11,7 @@ pub fn init(x: f64, y: f64) Self {
         .y = y,
     };
 }
+
+pub fn to_string(self: *const Self, allocator: std.mem.Allocator) ![]u8 {
+    return try std.fmt.allocPrint(allocator, "Point {{ x: {d}, y: {d} }}", .{ self.x, self.y });
+}

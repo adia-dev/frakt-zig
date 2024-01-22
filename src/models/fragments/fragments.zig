@@ -16,4 +16,12 @@ pub const Fragment = union(enum) {
             .FragmentResult => |*result| try result.to_string(allocator),
         };
     }
+
+    pub fn from_json(allocator: std.mem.Allocator, json: []const u8) !Fragment {
+        return try std.json.parseFromSliceLeaky(Fragment, allocator, json, .{ .ignore_unknown_fields = true });
+    }
+
+    pub fn to_json(fragment: Fragment, writer: anytype) !void {
+        try std.json.stringify(fragment, .{}, writer);
+    }
 };
