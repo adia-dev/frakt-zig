@@ -24,4 +24,8 @@ pub const Fragment = union(enum) {
     pub fn to_json(fragment: Fragment, writer: anytype) !void {
         try std.json.stringify(fragment, .{}, writer);
     }
+
+    pub fn into(comptime T: type, fragment: *Fragment) !T {
+        return fragment.*.FragmentTask;
+    }
 };

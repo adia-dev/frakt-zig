@@ -31,12 +31,16 @@ pub fn connect(self: *Self, host: []const u8, port: u16) !void {
 }
 
 pub fn start_worker(self: *Self) !void {
+    std.log.info("Worker {s} started !", .{self.worker_name});
+    defer std.log.info("Worker {s} has disconnected !", .{self.worker_name});
+
     try self.connect("localhost", 8787);
+    std.log.info("Worker {s} connected to {s}:{d} !", .{ self.worker_name, "localhost", 8787 });
 
     try self.send_request();
     var fragment = try networking.read_fragment(self.allocator, &self.stream);
 
-    std.debug.print("{!s}", .{fragment.to_string(self.allocator)});
+    std.log.debug("{!s}\n", .{fragment.to_string(self.allocator)});
 }
 
 fn send_request(self: *Self) !void {
