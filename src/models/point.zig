@@ -2,8 +2,8 @@ const std = @import("std");
 
 const Self = @This();
 
-x: f64,
-y: f64,
+x: f64 = 0.0,
+y: f64 = 0.0,
 
 pub fn init(x: f64, y: f64) Self {
     return .{

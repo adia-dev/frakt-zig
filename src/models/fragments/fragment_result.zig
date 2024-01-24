@@ -13,6 +13,6 @@ pixels: PixelData,
 
 pub fn to_string(self: *const Self, allocator: std.mem.Allocator) ![]u8 {
     return try std.fmt.allocPrint(allocator,
-        \\FragmentResult {{ id: {d}, resolution: {s}, range: {s}, pixels: {s} }}
-    , .{ self.id.count, try self.resolution.to_string(allocator), try self.range.to_string(allocator), try self.pixels.to_string(allocator) });
+        \\FragmentResult {{ id: {s}, resolution: {s}, range: {s}, pixels: {s} }}
+    , .{ try self.id.to_string(allocator), try self.resolution.to_string(allocator), try self.range.to_string(allocator), try self.pixels.to_string(allocator) });
 }

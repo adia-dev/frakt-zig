@@ -2,12 +2,16 @@ const std = @import("std");
 
 const Self = @This();
 
-offset: f32,
-count: f32,
+offset: u32,
+count: u32,
 
-pub fn init(offset: f32, count: f32) Self {
+pub fn init(offset: u32, count: u32) Self {
     return .{
         .offset = offset,
         .count = count,
     };
+}
+
+pub fn to_string(self: *const Self, allocator: std.mem.Allocator) ![]u8 {
+    return try std.fmt.allocPrint(allocator, "U8Data {{ offset: {d}, count: {d} }}", .{ self.offset, self.count });
 }

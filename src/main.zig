@@ -1,12 +1,12 @@
 const std = @import("std");
-const log = @import("core/logging.zig").log;
+const Logger = @import("core/logger.zig");
 
 const networking = @import("./networking/networking.zig");
 
 const models = @import("./models/models.zig");
 const Worker = @import("./networking/worker.zig");
 const Time = @import("./time/time.zig").Time;
-const Color = @import("./color/ansii.zig");
+const Color = @import("./color/ansi.zig");
 
 const net = std.net;
 const json = std.json;
@@ -17,7 +17,7 @@ const Fragment = Fragments.Fragment;
 
 pub const std_options = struct {
     pub const log_level = .debug;
-    pub const logFn = log;
+    pub const logFn = Logger.log;
 };
 
 pub fn main() !void {
@@ -27,11 +27,7 @@ pub fn main() !void {
     var worker = Worker.init(arena.allocator(), "adia-dev", 150);
     defer worker.deinit();
 
-    // this is so cooooool
-    // Color.red("Hello {s}", .{"adia-dev"}, std.log.info);
-    // Color.green("Hello {s}", .{"adia-dev"}, std.log.info);
-    // Color.yellow("Hello {s}", .{"adia-dev"}, std.log.info);
-    // Color.grey("Hello {s}", .{"adia-dev"}, std.log.info);
-
-    try worker.start_worker();
+    worker.start_worker() catch |err| {
+        std.log.err("Application panicked with an error: {!}", .{err});
+    };
 }
