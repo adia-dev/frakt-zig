@@ -17,5 +17,8 @@ pub fn generate(_: Self, max_iterations: u32, x: f64, y: f64) PixelIntensity {
         i += 1;
     }
 
-    return .{ .zn = @floatCast(z.arg_sq()), .count = @floatFromInt((i / max_iterations)) };
+    const i_f32: f32 = @floatFromInt(i);
+    const max_iterations_f32: f32 = @floatFromInt(max_iterations);
+
+    return .{ .zn = @floatCast(z.arg_sq()), .count = i_f32 / max_iterations_f32 };
 }

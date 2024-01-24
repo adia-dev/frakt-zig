@@ -42,11 +42,9 @@ pub fn start_worker(self: *Self) !void {
     const signature_bytes = raw_response.buffer.items[raw_response.json_size..];
     var fragment = try Fragment.from_json(self.allocator, json_bytes);
 
-    std.log.debug("{!s}\n", .{fragment.to_string(self.allocator)});
-
-    std.log.debug("Signature: {any}\n", .{signature_bytes});
-
     var task = fragment.FragmentTask;
+    std.log.debug("{!s}\n", .{task.to_string(self.allocator)});
+    std.log.debug("Signature: {any}\n", .{signature_bytes});
 
     var data_buffer = ArrayList(u8).init(self.allocator);
     defer data_buffer.deinit();
@@ -67,9 +65,10 @@ fn send_result(self: *Self, result: *Fragments.FragmentResult, data: []const u8,
     var fragment = Fragment{ .FragmentResult = result.* };
     try fragment.to_json(fragment_buffer.writer());
 
-    std.log.debug("{!s}\n", .{fragment.to_string(self.allocator)});
+    // std.log.debug("{!s}\n", .{fragment.to_string(self.allocator)});
     // std.log.debug("Data: {any}", .{data});
 
+    std.log.debug("Signature: {any}\n", .{signature});
     try networking.send_message(self.allocator, &self.inner_stream, fragment_buffer.items, data, signature);
 }
 

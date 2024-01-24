@@ -54,13 +54,15 @@ fn calculate_pixels(self: Self, writer: anytype) !void {
         const mapped_coords = self.map_coordinates(x, y);
         const pixel_intensity = self.calculate_fractal(mapped_coords.x, mapped_coords.y);
 
-        // BUG: This needs to be turned into Big Endian bytes
-        const le_bytes = std.mem.toBytes(pixel_intensity);
+        // std.log.debug("PixelIntensity: {any}", .{pixel_intensity});
 
-        std.log.debug("Bytes: {any}", .{le_bytes});
-        std.log.debug("PixelIntensity: {any}", .{pixel_intensity});
+        // HACK: this turns the pixel_intensity f32 fields into u32 to be usable
+        // in the writeInt function and specify the Endianess
+        const zn_u32: u32 = @bitCast(pixel_intensity.zn);
+        const count_u32: u32 = @bitCast(pixel_intensity.count);
 
-        _ = try writer.write(&std.mem.toBytes(pixel_intensity));
+        _ = try writer.writeInt(u32, zn_u32, std.builtin.Endian.Big);
+        _ = try writer.writeInt(u32, count_u32, std.builtin.Endian.Big);
     }
 }
 
