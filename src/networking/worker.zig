@@ -43,13 +43,11 @@ pub fn start_worker(self: *Self) !void {
     var fragment = try Fragment.from_json(self.allocator, json_bytes);
 
     var task = fragment.FragmentTask;
-    std.log.debug("{!s}\n", .{task.to_string(self.allocator)});
-    std.log.debug("Signature: {any}\n", .{signature_bytes});
+    std.log.debug("{!s}", .{task.to_string(self.allocator)});
+    std.log.debug("Signature: {any}", .{signature_bytes});
 
     var data_buffer = ArrayList(u8).init(self.allocator);
     defer data_buffer.deinit();
-
-    try data_buffer.appendSlice(signature_bytes);
 
     var result = try task.perform(data_buffer.writer());
 
@@ -65,10 +63,8 @@ fn send_result(self: *Self, result: *Fragments.FragmentResult, data: []const u8,
     var fragment = Fragment{ .FragmentResult = result.* };
     try fragment.to_json(fragment_buffer.writer());
 
-    // std.log.debug("{!s}\n", .{fragment.to_string(self.allocator)});
-    // std.log.debug("Data: {any}", .{data});
+    std.log.debug("{!s}", .{fragment.to_string(self.allocator)});
 
-    std.log.debug("Signature: {any}\n", .{signature});
     try networking.send_message(self.allocator, &self.inner_stream, fragment_buffer.items, data, signature);
 }
 
@@ -79,6 +75,8 @@ fn send_request(self: *Self) !void {
     var request = Fragments.FragmentRequest{ .worker_name = self.worker_name, .maximal_work_load = self.maximal_work_load };
     var fragment = Fragment{ .FragmentRequest = request };
     try fragment.to_json(buffer.writer());
+
+    std.log.debug("{!s}", .{fragment.to_string(self.allocator)});
 
     try networking.send_message(self.allocator, &self.stream, buffer.items, null, null);
 }

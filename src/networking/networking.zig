@@ -37,7 +37,8 @@ pub fn connect(allocator: std.mem.Allocator, host: []const u8, port: u16) !net.S
 pub fn send_message(allocator: std.mem.Allocator, stream: *net.Stream, json_bytes: []const u8, data: ?[]const u8, signature: ?[]const u8) !void {
     const json_size: u32 = @intCast(json_bytes.len);
     const data_size: u32 = if (data) |d| @intCast(d.len) else 0;
-    const total_size: u32 = json_size + data_size;
+    const signature_size: u32 = if (signature) |s| @intCast(s.len) else 0;
+    const total_size: u32 = json_size + data_size + signature_size;
 
     var buffer = std.ArrayList(u8).init(allocator);
     defer buffer.deinit();
@@ -52,8 +53,6 @@ pub fn send_message(allocator: std.mem.Allocator, stream: *net.Stream, json_byte
     if (signature) |s| try buf_writer.writeAll(s);
 
     if (data) |d| try buf_writer.writeAll(d);
-
-    // std.log.debug("Sending {any}", .{buffer.items});
 
     _ = try stream.writeAll(buffer.items);
 }

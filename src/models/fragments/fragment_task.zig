@@ -54,8 +54,6 @@ fn calculate_pixels(self: Self, writer: anytype) !void {
         const mapped_coords = self.map_coordinates(x, y);
         const pixel_intensity = self.calculate_fractal(mapped_coords.x, mapped_coords.y);
 
-        // std.log.debug("PixelIntensity: {any}", .{pixel_intensity});
-
         // HACK: this turns the pixel_intensity f32 fields into u32 to be usable
         // in the writeInt function and specify the Endianess
         const zn_u32: u32 = @bitCast(pixel_intensity.zn);
